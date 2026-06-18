@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>JP MORGAN — ANNUAL BIRTHDAY REPORT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/TextPlugin.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#021B0E;--g1:#0D5F2D;--neon:#00FF88;--gold:#FFD700;
+  --cream:#FFF4B8;--red:#FF3B3B;--white:#FFFFFF;--dark:#000000;
+}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{background:#000;color:#fff;font-family:'Inter',sans-serif;overflow-x:hidden;cursor:default}
+
+/* ── CANVAS LAYERS ── */
+#bgCanvas,#confCanvas,#coinCanvas{position:fixed;inset:0;pointer-events:none;z-index:0}
+#confCanvas{z-index:600}
+#coinCanvas{z-index:2}
+
+/* ── FLASH ── */
+#flash{position:fixed;inset:0;background:#fff;z-index:9999;opacity:0;pointer-events:none}
+
+/* ══════════════════════════════════
+   PHASE 1 — PRANK
+══════════════════════════════════ */
+#phase1{
+  position:fixed;inset:0;background:#000;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:900;gap:0;
+}
+.breaking-pill{
+  font-family:'Space Mono',monospace;font-size:clamp(10px,1.5vw,13px);
+  letter-spacing:.4em;background:var(--red);color:#fff;
+  padding:5px 16px;border-radius:2px;margin-bottom:28px;
+  opacity:0;
+}
+.p1-line{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(28px,5vw,64px);letter-spacing:.08em;
+  text-align:center;padding:0 24px;opacity:0;line-height:1.1;
+}
+.p1-line.sub{
+  font-family:'Space Mono',monospace;
+  font-size:clamp(12px,1.8vw,20px);letter-spacing:.15em;
+  color:rgba(255,255,255,.5);margin-top:8px;
+}
+
+/* dodge button */
+#prankBtn{
+  position:fixed;left:50%;top:65%;transform:translate(-50%,-50%);
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(18px,3vw,30px);
+  letter-spacing:.18em;background:var(--neon);color:#000;
+  border:none;padding:16px 52px;border-radius:4px;cursor:pointer;
+  z-index:910;opacity:0;
+  box-shadow:0 0 40px rgba(0,255,136,.6),0 0 80px rgba(0,255,136,.2);
+  transition:box-shadow .3s;
+}
+#tauntBox{
+  position:fixed;bottom:12%;left:50%;transform:translateX(-50%);
+  font-family:'Space Mono',monospace;font-size:clamp(15px,2.5vw,22px);font-weight:700;
+  color:#fff;opacity:0;pointer-events:none;text-align:center;
+  width:90%;max-width:560px;
+  background:rgba(0,0,0,.85);border:2px solid var(--neon);
+  padding:14px 28px;border-radius:6px;
+  text-shadow:0 0 20px var(--neon),0 0 40px rgba(0,255,136,.4);
+  box-shadow:0 0 30px rgba(0,255,136,.25);
+  letter-spacing:.04em;
+}
+#enterBtn{
+  position:fixed;left:50%;top:60%;transform:translate(-50%,-50%);
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,4vw,38px);
+  letter-spacing:.2em;background:linear-gradient(135deg,var(--gold),#ffb300,var(--gold));
+  color:#000;border:none;padding:22px 64px;border-radius:4px;cursor:pointer;
+  z-index:910;display:none;opacity:0;
+  box-shadow:0 0 60px rgba(255,215,0,.7),0 0 120px rgba(255,215,0,.3);
+}
+
+/* ══════════════════════════════════
+   PHASE 2 — TRANSITION
+══════════════════════════════════ */
+#phase2{
+  position:fixed;inset:0;background:#000;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:800;overflow:hidden;
+}
+#loadLine{font-family:'Space Mono',monospace;font-size:clamp(11px,1.8vw,16px);
+  color:var(--neon);letter-spacing:.3em;opacity:0;margin-bottom:48px;z-index:1}
+#chartTransCanvas{position:absolute;bottom:0;left:0;width:100%;height:60%;opacity:0}
+.trans-pct{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(60px,15vw,160px);
+  letter-spacing:.05em;color:var(--neon);opacity:0;z-index:1;
+  text-shadow:0 0 80px rgba(0,255,136,.5);
+}
+
+/* ══════════════════════════════════
+   MAIN SITE
+══════════════════════════════════ */
+#mainSite{display:none;position:relative;z-index:1;background:var(--bg)}
+
+/* ── TICKER ── */
+#ticker{
+  position:fixed;bottom:0;left:0;right:0;height:44px;
+  background:rgba(0,0,0,.95);border-top:2px solid var(--neon);
+  display:none;align-items:center;z-index:700;overflow:hidden;
+}
+.tick-label{
+  background:var(--neon);color:#000;font-family:'Bebas Neue',sans-serif;
+  font-size:15px;letter-spacing:.12em;height:100%;
+  display:flex;align-items:center;padding:0 16px;flex-shrink:0;white-space:nowrap;
+}
+.tick-scroll{display:flex;white-space:nowrap}
+.tick-item{
+  font-family:'Space Mono',monospace;font-size:11px;
+  padding:0 28px;display:inline-flex;align-items:center;gap:10px;
+}
+.t-sym{color:var(--gold);font-weight:700;font-size:12px}
+.t-up{color:var(--neon)}.t-dn{color:var(--red)}
+.t-sep{color:rgba(255,255,255,.15)}
+
+/* ── HERO ── */
+#heroSection{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  position:relative;text-align:center;padding:60px 24px 100px;overflow:hidden;
+}
+#heroCanvas{position:absolute;inset:0;pointer-events:none;z-index:0}
+.hero-inner{position:relative;z-index:1}
+.h-eye{
+  font-family:'Space Mono',monospace;font-size:clamp(9px,1.3vw,12px);
+  letter-spacing:.45em;color:var(--neon);opacity:0;margin-bottom:20px;
+  text-transform:uppercase;
+}
+.h-happy{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(48px,11vw,140px);
+  line-height:.9;letter-spacing:.04em;color:#fff;opacity:0;transform:translateY(80px);
+}
+.h-bday{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(56px,16vw,210px);
+  line-height:.85;letter-spacing:.02em;
+  background:linear-gradient(135deg,var(--gold) 0%,#ffb300 50%,var(--gold) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;opacity:0;transform:scale(.5);
+}
+.h-name{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(64px,20vw,280px);
+  line-height:.85;letter-spacing:.04em;color:var(--neon);
+  text-shadow:0 0 100px rgba(0,255,136,.5),0 0 200px rgba(0,255,136,.2);
+  opacity:0;transform:translateY(-60px) scale(1.15);
+  display:flex;justify-content:center;gap:.08em;align-items:flex-end;
+}
+/* Acrostic: big letter + tiny name stack beside it */
+.acro-letter{
+  position:relative;display:inline-flex;align-items:center;
+  gap:.04em;line-height:1;
+}
+.acro-big{
+  display:block;line-height:1;
+}
+.acro-stack{
+  display:flex;flex-direction:column;justify-content:center;
+  gap:.05em;opacity:0;
+  transition:opacity .5s ease;
+}
+.acro-stack.visible{ opacity:1; }
+.acro-char{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(9px,1.4vw,18px);
+  letter-spacing:.3em;
+  color:rgba(0,255,136,.7);
+  line-height:1.1;
+  text-shadow:none;
+  white-space:nowrap;
+  display:block;
+}
+.morgan-text{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(64px,20vw,280px);
+  line-height:.85;
+  letter-spacing:.04em;
+  color:var(--neon);
+  text-shadow:0 0 100px rgba(0,255,136,.5),0 0 200px rgba(0,255,136,.2);
+  display:inline-block;
+  margin-left:.05em;
+}
+.h-sub{
+  font-family:'Space Mono',monospace;font-size:clamp(10px,1.6vw,14px);
+  letter-spacing:.3em;color:rgba(255,255,255,.5);opacity:0;margin-top:28px;
+}
+.scroll-hint{
+  position:absolute;bottom:60px;left:50%;transform:translateX(-50%);
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.3em;
+  color:rgba(255,255,255,.3);opacity:0;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.scroll-arrow{width:1px;height:40px;background:linear-gradient(to bottom,transparent,var(--neon));animation:scrollPulse 2s ease-in-out infinite}
+@keyframes scrollPulse{0%,100%{opacity:.3}50%{opacity:1}}
+
+/* ── SECTIONS ── */
+.site-section{padding:80px 24px 100px;max-width:1120px;margin:0 auto}
+.s-eye{
+  font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.45em;
+  color:var(--neon);text-align:center;margin-bottom:12px;opacity:0;
+}
+.s-title{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,7vw,88px);
+  letter-spacing:.06em;text-align:center;color:#fff;
+  margin-bottom:56px;opacity:0;
+}
+.divline{
+  width:100%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,255,136,.3),transparent);
+}
+
+/* ── DASHBOARD ── */
+.dash-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;
+}
+.d-card{
+  background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);
+  border-radius:6px;padding:28px 22px;position:relative;overflow:hidden;
+  opacity:0;transform:translateY(40px);
+  transition:border-color .3s,background .3s;
+}
+.d-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--neon),transparent);
+  opacity:.6;
+}
+.d-card:hover{border-color:rgba(0,255,136,.4);background:rgba(0,255,136,.08)}
+.d-lbl{
+  font-family:'Space Mono',monospace;font-size:9px;letter-spacing:.35em;
+  color:rgba(255,255,255,.4);margin-bottom:10px;text-transform:uppercase;
+}
+.d-val{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,5vw,54px);
+  line-height:1;margin-bottom:6px;
+}
+.d-note{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.35)}
+.v-green{color:var(--neon)}.v-gold{color:var(--gold)}.v-red{color:var(--red)}.v-white{color:#fff}
+.spark{margin-top:14px;height:30px}
+.spark svg{width:100%;height:100%;overflow:visible}
+
+/* ── NEWS ── */
+.news-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;
+}
+.n-card{
+  background:rgba(0,0,0,.5);border:1px solid rgba(255,215,0,.15);
+  border-radius:6px;padding:24px;opacity:0;
+  transition:transform .3s,border-color .3s;
+}
+.n-card:hover{transform:translateY(-4px)!important;border-color:rgba(255,215,0,.4)}
+.n-badge{
+  display:inline-block;background:var(--red);color:#fff;
+  font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:.2em;
+  padding:3px 10px;border-radius:2px;margin-bottom:12px;
+}
+.n-head{font-size:clamp(14px,2.2vw,18px);font-weight:700;line-height:1.35;margin-bottom:10px}
+.n-meta{font-family:'Space Mono',monospace;font-size:9px;color:rgba(255,255,255,.35);letter-spacing:.12em}
+
+/* ── CHAOS ── */
+#chaosSection{
+  padding:80px 24px 100px;text-align:center;
+  position:relative;overflow:hidden;
+}
+#chaosCanvas{position:absolute;inset:0;pointer-events:none}
+.chaos-inner{position:relative;z-index:1}
+.c-big{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(80px,22vw,260px);
+  line-height:.9;
+  background:linear-gradient(135deg,var(--neon),var(--gold),var(--neon));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;opacity:0;
+}
+.c-lbl{
+  font-family:'Space Mono',monospace;font-size:clamp(11px,1.8vw,16px);
+  letter-spacing:.3em;color:rgba(255,255,255,.5);opacity:0;margin-bottom:48px;
+}
+.pills{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:0}
+.pill{
+  font-family:'Space Mono',monospace;font-size:11px;
+  padding:10px 20px;border-radius:3px;opacity:0;transform:translateY(16px);
+}
+.pill-up{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.25);color:var(--neon)}
+.pill-dn{background:rgba(255,59,59,.08);border:1px solid rgba(255,59,59,.25);color:var(--red)}
+
+/* ── FINALE ── */
+#finaleSection{
+  min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:80px 24px 120px;
+  position:relative;overflow:hidden;
+}
+#finCanvas{position:absolute;inset:0;pointer-events:none}
+.fin-inner{position:relative;z-index:1}
+.f-happy{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,7vw,90px);
+  letter-spacing:.06em;color:#fff;opacity:0;
+}
+.f-age{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(32px,6vw,80px);
+  letter-spacing:.06em;
+  background:linear-gradient(135deg,var(--gold),#ffb300,var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;opacity:0;
+}
+.f-name{
+  font-family:'Bebas Neue',sans-serif;font-size:clamp(72px,18vw,220px);
+  line-height:.85;letter-spacing:.05em;color:var(--neon);
+  text-shadow:0 0 120px rgba(0,255,136,.6);opacity:0;
+}
+.f-quote{
+  font-family:'Space Mono',monospace;font-size:clamp(12px,1.8vw,16px);
+  line-height:2;color:var(--cream);
+  max-width:500px;margin:44px auto 0;opacity:0;
+  padding:28px 32px;
+  border:1px solid rgba(255,215,0,.25);
+  border-radius:6px;background:rgba(255,215,0,.04);
+}
+.f-footer{
+  font-family:'Space Mono',monospace;font-size:10px;
+  letter-spacing:.35em;color:rgba(255,255,255,.25);
+  margin-top:64px;opacity:0;
+}
+.f-footer span{color:var(--neon)}
+
+/* ── FLOAT EMOJIS ── */
+#floatLayer{position:fixed;inset:0;pointer-events:none;z-index:3;overflow:hidden}
+.floater{
+  position:absolute;bottom:-60px;
+  animation:floatRise linear forwards;
+  user-select:none;pointer-events:none;
+}
+@keyframes floatRise{
+  0%{transform:translateY(0) rotate(0deg);opacity:.8}
+  100%{transform:translateY(-110vh) rotate(540deg);opacity:0}
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .dash-grid{grid-template-columns:1fr 1fr}
+  .news-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<canvas id="confCanvas"></canvas>
+<canvas id="coinCanvas"></canvas>
+<div id="flash"></div>
+<div id="floatLayer"></div>
+
+<!-- ══ PHASE 1 ══ -->
+<div id="phase1">
+  <div class="breaking-pill" id="bPill">⚡ URGENT TRANSMISSION ⚡</div>
+  <div class="p1-line" id="p1a">Something is happening.</div>
+  <div class="p1-line" id="p1b">We need you to see this.</div>
+  <div class="p1-line sub" id="p1c">Click below. If you dare.</div>
+  <div id="tauntBox"></div>
+  <button id="prankBtn">TELL ME WHO →</button>
+  <button id="enterBtn" onclick="startPhase2()">ENTER THE MARKET ↗</button>
+</div>
+
+<!-- ══ PHASE 2 ══ -->
+<div id="phase2">
+  <div id="loadLine">LOADING ANNUAL REPORT...</div>
+  <div class="trans-pct" id="transPct">0%</div>
+  <canvas id="chartTransCanvas"></canvas>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div id="mainSite">
+
+  <!-- HERO -->
+  <section id="heroSection">
+    <canvas id="heroCanvas"></canvas>
+    <div class="hero-inner">
+      <div class="h-eye">ANNUAL REPORT · 12 JULY 2026 · CLASSIFIED EDITION</div>
+      <div class="h-happy">HAPPY</div>
+      <div class="h-bday">BIRTHDAY</div>
+      <div class="h-name" id="hNameRow">
+        <span class="acro-letter" id="acroJ">
+          <span class="acro-big">J</span>
+          <span class="acro-stack" id="acroJStack"></span>
+        </span>
+        <span class="acro-letter" id="acroP">
+          <span class="acro-big">P</span>
+          <span class="acro-stack" id="acroPStack"></span>
+        </span>
+        <span class="morgan-text">MORGAN</span>
+      </div>
+ </section>
+
+
+      <div class="h-sub">EST. 2007 &nbsp;·&nbsp; NET WORTH: LOADING &nbsp;·&nbsp; VIBES: IMMACULATE</div>
+    </div>
+    <div class="scroll-hint" id="scrollHint">
+      <span>SCROLL</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
+
+  <div class="divline"></div>
+
+  <!-- DASHBOARD -->
+  <div class="site-section" id="dashWrap">
+    <div class="s-eye">Q4 PERSONAL METRICS · 12 JULY 2026 · CONFIDENTIAL</div>
+    <div class="s-title">THE JP MORGAN REPORT</div>
+    <div class="dash-grid" id="dashGrid"></div>
+  </div>
+
+  <div class="divline"></div>
+
+  <!-- NEWS -->
+  <div class="site-section" id="newsWrap">
+    <div class="s-eye">LIVE FEED · MARKET UPDATE · URGENT</div>
+    <div class="s-title">BREAKING NEWS</div>
+    <div class="news-grid" id="newsGrid"></div>
+  </div>
+
+  <div class="divline"></div>
+
+  <!-- CHAOS -->
+  <section id="chaosSection">
+    <canvas id="chaosCanvas"></canvas>
+    <div class="chaos-inner">
+      <div class="s-eye" style="margin-bottom:40px">JP EXCHANGE · LIVE DATA · 19TH ANNIVERSARY EDITION</div>
+      <div class="c-lbl">YTD PERFORMANCE · JP MORGAN HOLDINGS INC.</div>
+      <div class="c-big">+1900%</div>
+      <div class="pills" id="pillsRow"></div>
+    </div>
+  </section>
+
+  <div class="divline"></div>
+
+  <!-- FINALE -->
+  <section id="finaleSection">
+    <canvas id="finCanvas"></canvas>
+    <div class="fin-inner">
+      <div class="f-happy">HAPPY 19TH BIRTHDAY</div>
+      <div class="f-name">JP MORGAN</div>
+      <div class="f-age">THE ANNUAL REPORT</div>
+      <div class="f-quote">
+        "May your profits be high,<br>
+        your losses be low,<br>
+        and your birthday cake<br>
+        be completely tax-free."
+      </div>
+      <div class="f-footer">
+        END OF ANNUAL REPORT &nbsp;·&nbsp;
+        <span>THANK YOU FOR INVESTING IN JP</span>
+        &nbsp;·&nbsp; 12 JULY 2026
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- TICKER -->
+<div id="ticker">
+  <div class="tick-label">📈 LIVE</div>
+  <div style="overflow:hidden;flex:1;display:flex;align-items:center">
+    <div class="tick-scroll" id="tickScroll"></div>
+  </div>
+</div>
+
+<script>
+gsap.registerPlugin(ScrollTrigger, TextPlugin);
+
+/* ════════════════════════════════════
+   UTILS
+════════════════════════════════════ */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const $ = id => document.getElementById(id);
+const qs = s => document.querySelector(s);
+
+/* ════════════════════════════════════
+   CONFETTI ENGINE
+════════════════════════════════════ */
+const CC = $('confCanvas');
+const cx = CC.getContext('2d');
+let cparts = [];
+function resizeCC(){ CC.width=innerWidth; CC.height=innerHeight; }
+resizeCC(); addEventListener('resize', resizeCC);
+
+function burst(n=180, ox=null, oy=null){
+  const cols=['#00FF88','#FFD700','#FFF4B8','#00CC66','#FFAA00','#FF6B6B','#fff','#00DDFF'];
+  for(let i=0;i<n;i++){
+    cparts.push({
+      x: ox??Math.random()*innerWidth,
+      y: oy??(Math.random()*innerHeight*.35),
+      vx:(Math.random()-.5)*14, vy:Math.random()*-10-3,
+      w:Math.random()*10+4, h:Math.random()*5+2,
+      col:cols[~~(Math.random()*cols.length)],
+      rot:Math.random()*360, rv:(Math.random()-.5)*12,
+      life:1, decay:Math.random()*.007+.002
+    });
+  }
+}
+
+(function confLoop(){
+  requestAnimationFrame(confLoop);
+  cx.clearRect(0,0,CC.width,CC.height);
+  cparts = cparts.filter(p=>p.life>0);
+  cparts.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy; p.vy+=.18; p.vx*=.993;
+    p.rot+=p.rv; p.life-=p.decay;
+    cx.save();
+    cx.globalAlpha=Math.max(0,p.life);
+    cx.translate(p.x,p.y); cx.rotate(p.rot*Math.PI/180);
+    cx.fillStyle=p.col;
+    cx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+    cx.restore();
+  });
+})();
+
+/* ════════════════════════════════════
+   COIN ENGINE (canvas)
+════════════════════════════════════ */
+const COINC = $('coinCanvas');
+const coinCtx = COINC.getContext('2d');
+let coins = [];
+function resizeCoinC(){ COINC.width=innerWidth; COINC.height=innerHeight; }
+resizeCoinC(); addEventListener('resize', resizeCoinC);
+
+function spawnCoins(n=20){
+  for(let i=0;i<n;i++){
+    coins.push({
+      x:Math.random()*innerWidth, y:-30,
+      vx:(Math.random()-.5)*3, vy:Math.random()*3+1,
+      r:8+Math.random()*10, spin:Math.random()*Math.PI*2,
+      spinV:(Math.random()-.5)*.15, life:1
+    });
+  }
+}
+
+let coinsActive=false;
+function startCoins(){
+  coinsActive=true;
+  (function loop(){
+    if(!coinsActive&&coins.length===0) return;
+    requestAnimationFrame(loop);
+    coinCtx.clearRect(0,0,COINC.width,COINC.height);
+    coins=coins.filter(c=>c.y<innerHeight+80);
+    coins.forEach(c=>{
+      c.x+=c.vx; c.y+=c.vy; c.vy+=.04; c.spin+=c.spinV;
+      const scaleX=Math.abs(Math.cos(c.spin));
+      coinCtx.save();
+      coinCtx.translate(c.x,c.y);
+      coinCtx.scale(scaleX,1);
+      const g=coinCtx.createRadialGradient(0,0,0,0,0,c.r);
+      g.addColorStop(0,'#FFF4B8'); g.addColorStop(.5,'#FFD700'); g.addColorStop(1,'#B8860B');
+      coinCtx.fillStyle=g;
+      coinCtx.beginPath(); coinCtx.arc(0,0,c.r,0,Math.PI*2); coinCtx.fill();
+      coinCtx.strokeStyle='rgba(0,0,0,.3)'; coinCtx.lineWidth=1.5; coinCtx.stroke();
+      coinCtx.fillStyle='rgba(0,0,0,.4)';
+      coinCtx.font=`bold ${c.r*.9}px Arial`;
+      coinCtx.textAlign='center'; coinCtx.textBaseline='middle';
+      coinCtx.fillText('$',0,0);
+      coinCtx.restore();
+    });
+  })();
+}
+
+/* ════════════════════════════════════
+   BG PARTICLE FIELD
+════════════════════════════════════ */
+const BG = $('bgCanvas');
+const bx = BG.getContext('2d');
+let bgParts=[];
+function resizeBG(){ BG.width=innerWidth; BG.height=innerHeight; initBG(); }
+function initBG(){
+  bgParts=[];
+  const n=Math.min(120, ~~(innerWidth*innerHeight/12000));
+  for(let i=0;i<n;i++){
+    bgParts.push({
+      x:Math.random()*BG.width, y:Math.random()*BG.height,
+      vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3,
+      r:Math.random()*1.5+.3,
+      col:Math.random()>.5?'rgba(0,255,136,':'rgba(255,215,0,',
+      a:Math.random()*.4+.05
+    });
+  }
+}
+resizeBG(); addEventListener('resize', resizeBG);
+let bgOn=false;
+function startBG(){
+  bgOn=true;
+  (function loop(){
+    if(!bgOn) return;
+    requestAnimationFrame(loop);
+    bx.clearRect(0,0,BG.width,BG.height);
+    bgParts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=BG.width; if(p.x>BG.width)p.x=0;
+      if(p.y<0)p.y=BG.height; if(p.y>BG.height)p.y=0;
+      bx.beginPath(); bx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      bx.fillStyle=p.col+p.a+')'; bx.fill();
+    });
+    // connect nearby
+    for(let i=0;i<bgParts.length;i++){
+      for(let j=i+1;j<bgParts.length;j++){
+        const dx=bgParts[i].x-bgParts[j].x, dy=bgParts[i].y-bgParts[j].y;
+        const d=Math.sqrt(dx*dx+dy*dy);
+        if(d<90){
+          bx.beginPath();
+          bx.moveTo(bgParts[i].x,bgParts[i].y);
+          bx.lineTo(bgParts[j].x,bgParts[j].y);
+          bx.strokeStyle=`rgba(0,255,136,${(.12*(1-d/90))})`;
+          bx.lineWidth=.5; bx.stroke();
+        }
+      }
+    }
+  })();
+}
+
+/* ════════════════════════════════════
+   FLOATER EMOJIS
+════════════════════════════════════ */
+const ICONS=['💵','💰','🪙','📈','💎','🚀','🤑','💸','📊','✨','🎉','🎂'];
+let floatTimer=null;
+function startFloaters(){
+  const layer=$('floatLayer');
+  floatTimer=setInterval(()=>{
+    const el=document.createElement('div');
+    el.className='floater';
+    el.textContent=ICONS[~~(Math.random()*ICONS.length)];
+    const sz=14+Math.random()*18;
+    el.style.cssText=`font-size:${sz}px;left:${Math.random()*100}%;animation-duration:${6+Math.random()*8}s;opacity:.7`;
+    layer.appendChild(el);
+    setTimeout(()=>el.remove(),(14+Math.random()*8)*1000);
+  },700);
+}
+
+/* ════════════════════════════════════
+   HERO CANVAS (rising chart)
+════════════════════════════════════ */
+function startHeroCanvas(){
+  const hc=$('heroCanvas');
+  hc.width=hc.parentElement.offsetWidth;
+  hc.height=hc.parentElement.offsetHeight;
+  const hx=hc.getContext('2d'), W=hc.width, H=hc.height;
+  const lines=[];
+  for(let l=0;l<6;l++){
+    const pts=[], col=l%2===0?'rgba(0,255,136,':'rgba(255,215,0,';
+    let y=H*(0.4+Math.random()*.4);
+    for(let x=0;x<=W;x+=10){
+      y+=(Math.random()-.55)*18; y=Math.max(H*.05,Math.min(H*.9,y));
+      pts.push({x,y});
+    }
+    lines.push({pts,col,alpha:.07+Math.random()*.1,i:0,delay:l*300});
+  }
+  let started=false;
+  function draw(){
+    if(!started) return;
+    requestAnimationFrame(draw);
+    hx.clearRect(0,0,W,H);
+    lines.forEach(ln=>{
+      if(ln.i>=ln.pts.length-1) return;
+      ln.i=Math.min(ln.i+1,ln.pts.length-1);
+      hx.beginPath(); hx.moveTo(ln.pts[0].x,ln.pts[0].y);
+      for(let j=1;j<=ln.i;j++) hx.lineTo(ln.pts[j].x,ln.pts[j].y);
+      hx.strokeStyle=ln.col+ln.alpha+')'; hx.lineWidth=1.5; hx.stroke();
+    });
+  }
+  setTimeout(()=>{started=true;draw();},400);
+  lines.forEach(ln=>{ setTimeout(()=>{ ln.i=0; },ln.delay); });
+}
+
+/* ════════════════════════════════════
+   TICKER
+════════════════════════════════════ */
+const TICK_DATA=[
+  {s:'JP',v:'+1900%',u:1},{s:'BIRTHDAY.INDEX',v:'+100%',u:1},
+  {s:'AURA',v:'+∞%',u:1},{s:'SLEEP.QUALITY',v:'-87%',u:0},
+  {s:'RIZZ',v:'+250%',u:1},{s:'BAD.DECISIONS',v:'+400%',u:0},
+  {s:'NET.WORTH',v:'LOADING...',u:1},{s:'SWAG',v:'+9999%',u:1},
+  {s:'BRAIN.CELLS',v:'VOLATILE',u:1},{s:'VIBES',v:'ATH',u:1},
+  {s:'FRIENDS',v:'+14%',u:1},{s:'EGO',v:'+1B%',u:1},
+];
+function buildTicker(){
+  const track=$('tickScroll');
+  const items=[...TICK_DATA,...TICK_DATA];
+  track.innerHTML=items.map(t=>`
+    <span class="tick-item">
+      <span class="t-sym">${t.s}</span>
+      <span class="${t.u?'t-up':'t-dn'}">${t.v}</span>
+      <span class="t-sep">│</span>
+    </span>
+  `).join('');
+  const totalW=track.scrollWidth/2;
+  gsap.to(track,{x:-totalW,duration:totalW/55,ease:'none',repeat:-1});
+}
+
+/* ════════════════════════════════════
+   DASHBOARD CARDS
+════════════════════════════════════ */
+const CARDS=[
+  {lbl:'YEARS ALIVE',val:'19',vclass:'v-gold',note:'↑ +1 YoY · RECORD HIGH',
+   spark:'0,28 15,20 28,22 42,14 58,8 78,4 100,2',scol:'#FFD700',counter:19},
+  {lbl:'PROFIT GROWTH',val:'+1900%',vclass:'v-green',note:'UNPRECEDENTED BULL RUN',
+   spark:'0,30 12,24 28,18 45,13 60,8 78,4 100,1',scol:'#00FF88',counter:null},
+  {lbl:'AURA INDEX',val:'∞',vclass:'v-gold',note:'CANNOT BE QUANTIFIED',
+   spark:'0,20 20,14 40,8 50,2 60,8 80,6 100,3',scol:'#FFD700',counter:null},
+  {lbl:'SLEEP SCHEDULE',val:'-87%',vclass:'v-red',note:'BEAR MARKET · CRITICAL',
+   spark:'0,2 15,6 30,10 48,15 62,20 78,24 100,29',scol:'#FF3B3B',counter:null},
+  {lbl:'BAD DECISIONS',val:'+400%',vclass:'v-red',note:'CLASSIFIED · SEC REVIEW',
+   spark:'0,28 20,22 35,19 50,14 62,17 74,11 88,7 100,4',scol:'#FF3B3B',counter:null},
+  {lbl:'RIZZ INDEX',val:'+250%',vclass:'v-green',note:'UNDER INVESTIGATION',
+   spark:'0,28 25,20 45,13 65,7 82,4 100,2',scol:'#00FF88',counter:null},
+  {lbl:'NET WORTH',val:'$100B',vclass:'v-gold',note:'LOADING... PLEASE WAIT',
+   spark:'0,30 20,24 38,17 58,11 78,6 100,2',scol:'#FFD700',counter:null},
+  {lbl:'BRAIN CELLS',val:'9,999',vclass:'v-green',note:'FLUCTUATING · VOLATILE',
+   spark:'0,16 10,8 20,20 30,4 40,18 50,10 60,22 70,6 80,16 90,4 100,12',scol:'#00FF88',counter:null},
+];
+
+function buildDash(){
+  const grid=$('dashGrid');
+  CARDS.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='d-card'; el.dataset.i=i;
+    el.innerHTML=`
+      <div class="d-lbl">${c.lbl}</div>
+      <div class="d-val ${c.vclass}" id="dv${i}">${c.val}</div>
+      <div class="d-note">${c.note}</div>
+      <div class="spark"><svg viewBox="0 0 100 30">
+        <polyline points="${c.spark}" fill="none" stroke="${c.scol}" stroke-width="2" stroke-linecap="round"/>
+      </svg></div>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+function animDash(){
+  const cards=document.querySelectorAll('.d-card');
+  cards.forEach((c,i)=>{
+    gsap.to(c,{opacity:1,y:0,duration:.6,delay:i*.08,ease:'power2.out'});
+  });
+  // animate section headers
+  gsap.to('#dashWrap .s-eye',{opacity:1,duration:.5});
+  gsap.to('#dashWrap .s-title',{opacity:1,duration:.6,delay:.1});
+}
+
+/* ════════════════════════════════════
+   NEWS CARDS
+════════════════════════════════════ */
+const NEWS=[
+  {h:'Local Man Reaches Level 19 — Officials Stunned By Speed Of Development',src:'REUTERS · 2 MIN AGO'},
+  {h:'Birthday Triggers Massive Bull Market. Investors Scramble For JP Shares.',src:'BLOOMBERG · JUST NOW'},
+  {h:'Experts Alarmed By Uncontrolled Aura Growth. "We\'ve Never Seen Anything Like It."',src:'FINANCIAL TIMES · 5 MIN AGO'},
+  {h:'JP Stock Hits All-Time High. Analysts Call It "The Trade Of The Century."',src:'WSJ · 1 MIN AGO'},
+  {h:'Economy Formally Requests JP Slow Down. Request Denied. Economy Crying.',src:'CNN · LIVE'},
+  {h:'Scientists Confirm: Cake Consumed On This Date Is Legally Tax-Free',src:'AP · 8 MIN AGO'},
+];
+function buildNews(){
+  const g=$('newsGrid');
+  NEWS.forEach((n,i)=>{
+    const el=document.createElement('div');
+    el.className='n-card';
+    el.innerHTML=`<div class="n-badge">🔴 BREAKING</div><div class="n-head">${n.h}</div><div class="n-meta">${n.src} · DEVELOPING STORY</div>`;
+    g.appendChild(el);
+  });
+}
+function animNews(){
+  gsap.to('#newsWrap .s-eye',{opacity:1,duration:.5});
+  gsap.to('#newsWrap .s-title',{opacity:1,duration:.6,delay:.1});
+  const cards=document.querySelectorAll('.n-card');
+  cards.forEach((c,i)=>{
+    const dir=i%2===0?-40:40;
+    gsap.fromTo(c,{opacity:0,x:dir,rotation:i%2===0?-2:2},{
+      opacity:1,x:0,rotation:0,duration:.7,delay:i*.1,ease:'power2.out'
+    });
+  });
+}
+
+/* ════════════════════════════════════
+   CHAOS SECTION
+════════════════════════════════════ */
+const PILLS=[
+  {s:'JP',v:'+1900%',u:1},{s:'BIRTHDAY',v:'+100%',u:1},
+  {s:'AURA',v:'+∞%',u:1},{s:'SLEEP',v:'-87%',u:0},
+  {s:'RIZZ',v:'+250%',u:1},{s:'SWAG',v:'+9999%',u:1},
+  {s:'BAD.DEC',v:'+400%',u:0},{s:'VIBES',v:'ATH',u:1},
+];
+function buildPills(){
+  const row=$('pillsRow');
+  PILLS.forEach((p,i)=>{
+    const el=document.createElement('div');
+    el.className=`pill ${p.u?'pill-up':'pill-dn'}`;
+    el.innerHTML=`<strong style="color:#fff">${p.s}</strong>&nbsp;&nbsp;${p.v}`;
+    row.appendChild(el);
+  });
+}
+function animChaos(){
+  gsap.to('#chaosSection .s-eye',{opacity:1,duration:.5});
+  gsap.to('.c-lbl',{opacity:1,duration:.5,delay:.1});
+  gsap.fromTo('.c-big',{opacity:0,scale:.6},{opacity:1,scale:1,duration:1,delay:.2,ease:'back.out(1.5)'});
+  document.querySelectorAll('.pill').forEach((p,i)=>{
+    gsap.to(p,{opacity:1,y:0,duration:.5,delay:.5+i*.06,ease:'power2.out'});
+  });
+  drawChaosLines();
+  spawnCoins(30); startCoins();
+}
+function drawChaosLines(){
+  const cv=$('chaosCanvas');
+  cv.width=cv.parentElement.offsetWidth; cv.height=cv.parentElement.offsetHeight;
+  const cx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  for(let l=0;l<16;l++){
+    setTimeout(()=>{
+      const pts=[], col=l%2===0?'rgba(0,255,136,':'rgba(255,215,0,';
+      let y=H*(0.2+Math.random()*.7);
+      for(let x=0;x<=W;x+=8){ y+=(Math.random()-.52)*22; y=Math.max(H*.03,Math.min(H*.97,y)); pts.push({x,y}); }
+      let i=0;
+      (function draw(){
+        cx.beginPath(); cx.moveTo(pts[0].x,pts[0].y);
+        for(let j=1;j<=i;j++) cx.lineTo(pts[j].x,pts[j].y);
+        cx.strokeStyle=col+'.2)'; cx.lineWidth=1.5; cx.stroke();
+        i++; if(i<pts.length) requestAnimationFrame(draw);
+      })();
+    }, l*100);
+  }
+}
+
+/* ════════════════════════════════════
+   FINALE
+════════════════════════════════════ */
+let finaleDone=false;
+function triggerFinale(){
+  if(finaleDone) return; finaleDone=true;
+  gsap.to('.f-happy',{opacity:1,y:0,duration:.8,ease:'power3.out'});
+  gsap.to('.f-name',{opacity:1,y:0,duration:.9,delay:.2,ease:'back.out(1.4)'});
+  gsap.to('.f-age',{opacity:1,duration:.7,delay:.5});
+  gsap.to('.f-quote',{opacity:1,y:0,duration:.8,delay:.8,ease:'power2.out'});
+  gsap.to('.f-footer',{opacity:1,duration:.7,delay:1.2});
+  // fireworks
+  setTimeout(()=>{
+    for(let i=0;i<10;i++){
+      setTimeout(()=>burst(160,Math.random()*innerWidth,Math.random()*innerHeight*.6),i*200);
+    }
+    spawnCoins(60);
+  }, 600);
+  // keep bursting
+  setTimeout(()=>{
+    setInterval(()=>burst(80,Math.random()*innerWidth,Math.random()*innerHeight*.5),2000);
+  },2600);
+}
+
+/* ════════════════════════════════════
+   SCROLL TRIGGERS
+════════════════════════════════════ */
+function setupScrollTriggers(){
+  ScrollTrigger.create({trigger:'#dashWrap',start:'top 75%',once:true,onEnter:animDash});
+  ScrollTrigger.create({trigger:'#newsWrap',start:'top 75%',once:true,onEnter:animNews});
+  ScrollTrigger.create({trigger:'#chaosSection',start:'top 70%',once:true,onEnter:animChaos});
+  ScrollTrigger.create({trigger:'#finaleSection',start:'top 65%',once:true,onEnter:triggerFinale});
+  // finale fin canvas lines
+  ScrollTrigger.create({trigger:'#finaleSection',start:'top 80%',once:true,onEnter:drawFinCanvas});
+}
+
+function drawFinCanvas(){
+  const cv=$('finCanvas');
+  cv.width=cv.parentElement.offsetWidth; cv.height=cv.parentElement.offsetHeight;
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  for(let l=0;l<8;l++){
+    setTimeout(()=>{
+      const pts=[]; let y=H*(.3+Math.random()*.5);
+      for(let x=0;x<=W;x+=10){ y+=(Math.random()-.5)*14; y=Math.max(H*.05,Math.min(H*.95,y)); pts.push({x,y}); }
+      let i=0;
+      (function draw(){ ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+        for(let j=1;j<=i;j++) ctx.lineTo(pts[j].x,pts[j].y);
+        ctx.strokeStyle=l%2===0?'rgba(0,255,136,.1)':'rgba(255,215,0,.1)'; ctx.lineWidth=1; ctx.stroke();
+        i++; if(i<pts.length) requestAnimationFrame(draw);
+      })();
+    }, l*200);
+  }
+}
+
+/* ════════════════════════════════════
+   PHASE 1 — PRANK
+════════════════════════════════════ */
+const TAUNTS=[
+  'What happened kid? 😂','Too slow lmao.','Bro is 19 and can\'t click a button.',
+  'Skill issue detected 📉','Are you sure you\'re JP?','Try harder bestie 💀',
+];
+let prankHits=0, tauntI=0;
+
+function dodgeBtn(){
+  if(prankHits>=5) return;
+  prankHits++;
+  // show taunt
+  const tb=$('tauntBox');
+  gsap.set(tb,{opacity:0}); tb.textContent=TAUNTS[Math.min(tauntI++,TAUNTS.length-1)];
+  gsap.to(tb,{opacity:1,duration:.25});
+  // move button
+  const pad=130;
+  const nx=pad+Math.random()*(innerWidth-pad*2);
+  const ny=pad+Math.random()*(innerHeight-pad*2);
+  gsap.to('#prankBtn',{left:nx,top:ny,duration:.22,ease:'power3.out'});
+  if(prankHits>=5) setTimeout(showEnter,900);
+}
+
+async function showEnter(){
+  gsap.to('#prankBtn',{opacity:0,scale:.8,duration:.3,onComplete:()=>$('prankBtn').style.display='none'});
+  gsap.to('#tauntBox',{opacity:0,duration:.3});
+  await sleep(400);
+  const tb=$('tauntBox');
+  tb.textContent='Fine. 🙄';
+  gsap.to(tb,{opacity:1,duration:.4});
+  await sleep(900);
+  tb.textContent='Access Granted. ✅';
+  gsap.set(tb,{opacity:0});
+  gsap.to(tb,{opacity:1,duration:.4});
+  await sleep(800);
+  gsap.to(tb,{opacity:0,duration:.3});
+  await sleep(400);
+  const eb=$('enterBtn');
+  eb.style.display='block';
+  gsap.to(eb,{opacity:1,scale:1,duration:.6,ease:'back.out(1.5)'});
+  gsap.to(eb,{boxShadow:'0 0 80px rgba(255,215,0,.9), 0 0 160px rgba(255,215,0,.4)',
+    duration:1.2,repeat:-1,yoyo:true,ease:'sine.inOut'});
+}
+
+async function phase1Init(){
+  await sleep(500);
+  gsap.to('#bPill',{opacity:1,duration:.4});
+  await sleep(500);
+  gsap.to('#p1a',{opacity:1,y:0,duration:.6,ease:'power2.out'});
+  await sleep(400);
+  gsap.to('#p1b',{opacity:1,y:0,duration:.6,ease:'power2.out'});
+  await sleep(400);
+  gsap.to('#p1c',{opacity:1,duration:.5});
+  await sleep(800);
+  const pb=$('prankBtn');
+  pb.style.display='block';
+  gsap.to(pb,{opacity:1,duration:.5,ease:'back.out(1.3)'});
+  pb.addEventListener('mouseenter',dodgeBtn);
+  pb.addEventListener('touchstart',e=>{e.preventDefault();dodgeBtn();},{passive:false});
+}
+
+/* ════════════════════════════════════
+   PHASE 2 — TRANSITION
+════════════════════════════════════ */
+async function startPhase2(){
+  const p1=$('phase1'), p2=$('phase2');
+  gsap.to(p1,{opacity:0,duration:.5,onComplete:()=>p1.style.display='none'});
+  await sleep(300);
+  p2.style.display='flex'; p2.style.opacity=0;
+  gsap.to(p2,{opacity:1,duration:.4});
+  await sleep(300);
+  gsap.to('#loadLine',{opacity:1,duration:.5});
+  await sleep(400);
+  // draw chart
+  drawTransChart();
+  // percent counter
+  const pct=$('transPct');
+  gsap.to(pct,{opacity:1,duration:.4,delay:.3});
+  let n=0;
+  const iv=setInterval(()=>{
+    n+=Math.floor(Math.random()*7)+2;
+    if(n>=100){n=100;clearInterval(iv);}
+    pct.textContent=n+'%';
+  },60);
+  await sleep(3200);
+  // flash + reveal
+  const fl=$('flash');
+  gsap.to(fl,{opacity:1,duration:.08,onComplete:()=>{
+    gsap.to(fl,{opacity:0,duration:.5});
+    gsap.to(p2,{opacity:0,duration:.3,onComplete:()=>{
+      p2.style.display='none';
+      launchMain();
+    }});
+  }});
+}
+
+function drawTransChart(){
+  const cv=$('chartTransCanvas');
+  cv.width=innerWidth; cv.height=innerHeight*.6;
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height;
+  gsap.to(cv,{opacity:.7,duration:.5});
+  const pts=[]; let y=H*.8;
+  for(let x=0;x<=W;x+=7){ y+=(Math.random()-.6)*14; y=Math.max(H*.1,Math.min(H*.9,y)); pts.push({x,y}); }
+  let i=0;
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'rgba(0,255,136,.25)'); grad.addColorStop(1,'rgba(0,255,136,0)');
+  (function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.beginPath(); ctx.moveTo(pts[0].x,H);
+    for(let j=0;j<=i;j++) ctx.lineTo(pts[j].x,pts[j].y);
+    ctx.lineTo(pts[i].x,H); ctx.closePath();
+    ctx.fillStyle=grad; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+    for(let j=1;j<=i;j++) ctx.lineTo(pts[j].x,pts[j].y);
+    ctx.strokeStyle='#00FF88'; ctx.lineWidth=3;
+    ctx.shadowColor='#00FF88'; ctx.shadowBlur=16; ctx.stroke();
+    // glow dot
+    if(i>0){
+      ctx.beginPath(); ctx.arc(pts[i].x,pts[i].y,6,0,Math.PI*2);
+      ctx.fillStyle='#00FF88'; ctx.shadowBlur=20; ctx.fill();
+    }
+    i++; if(i<pts.length) requestAnimationFrame(draw);
+  })();
+}
+
+/* ════════════════════════════════════
+   LAUNCH MAIN
+════════════════════════════════════ */
+function launchMain(){
+  const main=$('mainSite'), tick=$('ticker');
+  main.style.display='block';
+  main.style.opacity=0;
+  tick.style.display='flex';
+  buildTicker(); buildDash(); buildNews(); buildPills();
+  gsap.to(main,{opacity:1,duration:.6});
+  startBG(); startFloaters(); startHeroCanvas();
+  // hero anim sequence
+  const tl=gsap.timeline({delay:.2});
+  tl.to('.h-eye',{opacity:1,duration:.5})
+    .to('.h-happy',{opacity:1,y:0,duration:.7,ease:'power3.out'},'-=.1')
+    .to('.h-bday',{opacity:1,scale:1,duration:.8,ease:'back.out(1.4)'},'-=.2')
+    .to('.h-name',{opacity:1,y:0,scale:1,duration:.9,ease:'back.out(1.3)'},'-=.3')
+    .to('.h-sub',{opacity:1,duration:.6},'-=.2')
+    .to('#scrollHint',{opacity:1,duration:.6},'-=.1');
+  // confetti at name reveal
+  tl.add(()=>{
+    for(let i=0;i<5;i++) setTimeout(()=>burst(100,Math.random()*innerWidth,Math.random()*innerHeight*.4),i*150);
+    spawnCoins(15); startCoins();
+  }, '-=.4');
+  // reveal acrostic stacks after name appears
+  setTimeout(()=>{
+    document.querySelectorAll('.acro-stack').forEach(s=>s.classList.add('visible'));
+  }, 1800);
+  setTimeout(setupScrollTriggers,1500);
+}
+
+/* ════════════════════════════════════
+   CONFIG — edit name here
+════════════════════════════════════ */
+// The first word goes inside "J", second inside "P"
+// Change these to whatever name you want to display
+const ACRO_J = 'JAYANT';   // ← put full first name here
+const ACRO_P = 'PATEL';    // ← put surname / last name here
+
+function buildAcrostic(){
+  function fill(stackId, word){
+    const el=document.getElementById(stackId);
+    if(!el) return;
+    // Each letter of the word gets its own line
+    word.split('').forEach(ch=>{
+      const span=document.createElement('span');
+      span.className='acro-char';
+      span.textContent=ch;
+      el.appendChild(span);
+    });
+  }
+  fill('acroJStack', ACRO_J);
+  fill('acroPStack', ACRO_P);
+}
+
+/* ════════════════════════════════════
+   INIT
+════════════════════════════════════ */
+// set initial gsap states
+gsap.set(['#p1a','#p1b','#p1c'],{opacity:0,y:20});
+gsap.set('#enterBtn',{scale:.9});
+buildAcrostic();
+phase1Init();
+</script>
+</body>
+</html>
